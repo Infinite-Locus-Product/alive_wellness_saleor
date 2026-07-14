@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.pem
+*.key
+.env
+.env.*
+node_modules/
+.pytest_cache/
+*.egg-info/
