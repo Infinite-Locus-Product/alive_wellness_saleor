@@ -274,7 +274,16 @@ if not SECRET_KEY and DEBUG:
 
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
 if RSA_PRIVATE_KEY:
-    RSA_PRIVATE_KEY = RSA_PRIVATE_KEY.replace("\\n", "\n")
+    import re
+    payload = re.sub(r'-----.*?-----', '', RSA_PRIVATE_KEY)
+    payload = re.sub(r'\\n|\s+', '', payload)
+    if payload:
+        chunks = [payload[i:i+64] for i in range(0, len(payload), 64)]
+        formatted_payload = "\n".join(chunks)
+        if "BEGIN RSA" in RSA_PRIVATE_KEY:
+            RSA_PRIVATE_KEY = f"-----BEGIN RSA PRIVATE KEY-----\n{formatted_payload}\n-----END RSA PRIVATE KEY-----"
+        else:
+            RSA_PRIVATE_KEY = f"-----BEGIN PRIVATE KEY-----\n{formatted_payload}\n-----END PRIVATE KEY-----"
 RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
