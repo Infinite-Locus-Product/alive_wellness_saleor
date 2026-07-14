@@ -131,11 +131,11 @@ if "DATABASE_URL_REPLICA" in os.environ:
 else:
     # If replica env is not set, then always try to use the
     # default env first.
-    DATABASE_URL_REPLICA_ENV_NAME = dj_database_url.DEFAULT_ENV
+    DATABASE_URL_REPLICA_ENV_NAME = "SALEOR_DATABASE_URL"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        env=dj_database_url.DEFAULT_ENV,
+        env="SALEOR_DATABASE_URL",
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
