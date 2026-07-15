@@ -275,15 +275,26 @@ if not SECRET_KEY and DEBUG:
 RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
 if RSA_PRIVATE_KEY:
     import re
-    payload = re.sub(r'-----.*?-----', '', RSA_PRIVATE_KEY)
-    payload = re.sub(r'\\n|\s+', '', payload)
-    if payload:
-        chunks = [payload[i:i+64] for i in range(0, len(payload), 64)]
-        formatted_payload = "\n".join(chunks)
-        if "BEGIN RSA" in RSA_PRIVATE_KEY:
-            RSA_PRIVATE_KEY = f"-----BEGIN RSA PRIVATE KEY-----\n{formatted_payload}\n-----END RSA PRIVATE KEY-----"
-        else:
-            RSA_PRIVATE_KEY = f"-----BEGIN PRIVATE KEY-----\n{formatted_payload}\n-----END PRIVATE KEY-----"
+
+    # Secret managers commonly inject the PEM with newlines escaped as the
+    # literal characters "\n"; restore them to real newlines first.
+    RSA_PRIVATE_KEY = RSA_PRIVATE_KEY.replace("\\n", "\n")
+
+    # If a secret store also flattened the PEM onto a single line, rebuild the
+    # 64-char body wrapping. Preserve the *exact* BEGIN/END labels (e.g.
+    # "RSA PRIVATE KEY", "ENCRYPTED PRIVATE KEY") so the header keeps matching
+    # the key body. Skip legacy PKCS#1-encrypted keys, which carry Proc-Type/
+    # DEK-Info metadata lines that must not be folded into the base64 body.
+    _pem = re.match(
+        r"\s*(-----BEGIN [A-Z0-9 ]+-----)(.*?)(-----END [A-Z0-9 ]+-----)\s*\Z",
+        RSA_PRIVATE_KEY,
+        re.DOTALL,
+    )
+    if _pem and "DEK-Info" not in RSA_PRIVATE_KEY:
+        _header, _body, _footer = _pem.groups()
+        _body = re.sub(r"\s+", "", _body)
+        _body = "\n".join(_body[i:i + 64] for i in range(0, len(_body), 64))
+        RSA_PRIVATE_KEY = f"{_header}\n{_body}\n{_footer}"
 RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
