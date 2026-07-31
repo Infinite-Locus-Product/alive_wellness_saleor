@@ -12330,6 +12330,9 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Returns True, if the line unit price was overridden."""
   isPriceOverridden: Boolean
 
+  """Reason for the line unit price override, if any."""
+  priceOverrideReason: String
+
   """
   A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
