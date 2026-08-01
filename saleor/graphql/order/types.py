@@ -1183,6 +1183,9 @@ class OrderLine(
     is_price_overridden = graphene.Boolean(
         description="Returns True, if the line unit price was overridden."
     )
+    price_override_reason = graphene.String(
+        description="Reason for the line unit price override, if any."
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -1528,6 +1531,12 @@ class OrderLine(
         channel = ChannelByOrderIdLoader(context).load(order_line.order_id)
 
         return Promise.all([variant, channel]).then(requestor_has_access_to_variant)
+
+    @staticmethod
+    def resolve_price_override_reason(
+        root: SyncWebhookControlContext[models.OrderLine], _info
+    ):
+        return None
 
     @staticmethod
     def resolve_allocations(root: SyncWebhookControlContext[models.OrderLine], info):
