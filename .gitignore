@@ -9,3 +9,5 @@ node_modules/
 *.egg-info/
 Jenkinsfile
 docker-compose.yaml
+# Delivery Rule 6 test gate, machine-specific
+.test-gate.local.conf
